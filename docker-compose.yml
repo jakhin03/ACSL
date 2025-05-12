@@ -1,0 +1,58 @@
+version: "3.8"
+
+services:
+  attacker:
+    build:
+      context: ./dockerfiles
+      dockerfile: attacker.Dockerfile
+    container_name: attacker
+    hostname: attacker
+    networks:
+      attacker_net:
+        ipv4_address: 172.16.100.10
+
+  helper:
+    build:
+      context: ./dockerfiles
+      dockerfile: helper.Dockerfile
+    container_name: helper
+    hostname: helper
+    networks:
+      attacker_net:
+        ipv4_address: 172.16.100.11
+      helper_net:
+        ipv4_address: 172.16.101.10
+
+  victim:
+    build:
+      context: ./dockerfiles
+      dockerfile: victim.Dockerfile
+    container_name: victim
+    hostname: victim
+    ports:
+      - "80:80"
+    volumes:
+      - ./html:/usr/share/nginx/html
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./ssh-key:/ssh-key
+      - ./authorized_keys:/root/.ssh/authorized_keys
+    networks:
+      helper_net:
+        ipv4_address: 172.16.101.11
+
+networks:
+  attacker_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.100.0/24
+          gateway: 172.16.100.1
+
+  helper_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.101.0/24
+          gateway: 172.16.101.1
