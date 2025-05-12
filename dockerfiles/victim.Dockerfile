@@ -18,6 +18,23 @@ RUN mkdir -p /ssh-key && cp /root/.ssh/id_rsa /ssh-key/id_rsa
 RUN chmod -R 777 /ssh-key
 RUN chown nobody:nogroup /ssh-key /ssh-key/id_rsa
 
+# Cài đặt PHP và các module cần thiết
+RUN apt install -y \
+    php-fpm \
+    php-cli \
+    php-common \
+    php-mysql \
+    php-gd \
+    php-curl \
+    php-mbstring \
+    php-xml \
+    php-zip \
+
+
+# Cấu hình Nginx để forward PHP requests đến PHP-FPM
+RUN rm /etc/nginx/conf.d/default.conf
+COPY nginx/default.conf /etc/nginx/conf.d/
+
 EXPOSE 80
 EXPOSE 22
 
