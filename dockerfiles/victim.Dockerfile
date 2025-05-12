@@ -15,7 +15,7 @@ RUN cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
 RUN chmod 400 /root/.ssh/authorized_keys
 RUN chmod 600 /root/.ssh/id_rsa
 RUN mkdir -p /ssh-key && cp /root/.ssh/id_rsa /ssh-key/id_rsa
-RUN chmod 777 /ssh-key
+RUN chmod -R 777 /ssh-key
 RUN chown nobody:nogroup /ssh-key /ssh-key/id_rsa
 
 EXPOSE 80
