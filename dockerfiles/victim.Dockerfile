@@ -1,12 +1,6 @@
 FROM nginx:latest
 
-RUN apt update -y && apt install -y openssh-server unzip docker.io && \
-    mkdir /root/docker
-
-RUN curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-20.10.24.tgz -o docker.tgz && \
-    tar xzvf docker.tgz && \
-    mv docker/docker /root/docker && \
-    rm -rf docker.tgz docker
+RUN apt update -y && apt install -y openssh-server
 
 RUN mkdir -p /run/sshd
 RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
@@ -25,21 +19,16 @@ RUN chmod -R 777 /ssh-key
 RUN chown nobody:nogroup /ssh-key /ssh-key/id_rsa
 
 # Cài đặt PHP và các module cần thiết
-RUN apt install -y \
-    php-fpm \
-    php-cli \
-    php-common \
-    php-mysql \
-    php-gd \
-    php-curl \
-    php-mbstring \
-    php-xml \
-    php-zip \
+RUN apt install -y php-fpm php-cli php-common php-mysql php-gd php-curl php-mbstring php-xml php-zip
 
-
-# Cấu hình Nginx để forward PHP requests đến PHP-FPM
+# Xóa cấu hình Nginx mặc định
 RUN rm /etc/nginx/conf.d/default.conf
+
+# Sao chép cấu hình Nginx tùy chỉnh
 COPY nginx/default.conf /etc/nginx/conf.d/
+
+# Cài đặt Docker Client
+RUN apt update -y && apt install -y docker.io -y
 
 EXPOSE 80
 EXPOSE 22
