@@ -1,2 +1,2 @@
-/ssh-key/*
-/authorized_keys/*
+ssh-key/*
+authorized_keys/*
