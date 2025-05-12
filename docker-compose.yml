@@ -28,8 +28,8 @@ services:
 
   victim:
     build:
-      context: ./dockerfiles
-      dockerfile: victim.Dockerfile
+      context: .
+      dockerfile: ./dockerfiles/victim.Dockerfile
     container_name: victim
     hostname: victim
     ports:
