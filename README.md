@@ -17,7 +17,7 @@ chown nobody:nogroup ./ssh-key/id_rsa
 
 ### Run the lab
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 #### Access to attacker
