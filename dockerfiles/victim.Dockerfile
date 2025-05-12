@@ -1,6 +1,12 @@
 FROM nginx:latest
 
-RUN apt update -y && apt install -y openssh-server
+RUN apt update -y && apt install -y openssh-server unzip docker.io && \
+    mkdir /root/docker
+
+RUN curl -fsSL https://download.docker.com/linux/static/stable/x86_64/docker-20.10.24.tgz -o docker.tgz && \
+    tar xzvf docker.tgz && \
+    mv docker/docker /root/docker && \
+    rm -rf docker.tgz docker
 
 RUN mkdir -p /run/sshd
 RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config

