@@ -33,4 +33,4 @@ RUN apt update -y && apt install -y docker.io -y
 EXPOSE 80
 EXPOSE 22
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/bin/sh", "-c", "service php7.4-fpm start && nginx -g 'daemon off;'"]
