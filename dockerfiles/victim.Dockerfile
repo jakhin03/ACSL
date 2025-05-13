@@ -10,10 +10,6 @@ RUN apt update -y && \
 
 RUN echo "This is flag for sharing namespace" > /user.txt
 
-RUN echo 'www-data ALL=(ALL) NOPASSWD: /usr/bin/su' > /etc/sudoers.d/www-data-nopasswd \
-    && chmod 0440 /etc/sudoers.d/www-data-nopasswd 
-
-
 # --- Cấu hình quyền Socket PHP-FPM ---
 # Khối lệnh này sẽ tìm file www.conf và sửa quyền socket để Nginx có thể truy cập
 # Bao gồm các dòng debug để xem quá trình sửa đổi trong output build
@@ -60,6 +56,8 @@ COPY startup.sh /usr/local/bin/startup.sh
 RUN chmod +x /usr/local/bin/startup.sh
 # --- Kết thúc Script Khởi động ---
 
+RUN echo 'www-data ALL=(ALL) NOPASSWD: /usr/bin/su' > /etc/sudoers.d/www-data-nopasswd \
+    && chmod 0440 /etc/sudoers.d/www-data-nopasswd     
 
 # Mở các cổng cần thiết (HTTP và SSH)
 EXPOSE 80
