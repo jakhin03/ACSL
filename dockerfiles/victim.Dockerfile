@@ -8,7 +8,35 @@ RUN apt update -y && \
     php-fpm php-cli php-common php-mysql php-gd php-curl php-mbstring php-xml php-zip \
     && rm -rf /var/lib/apt/lists/* # Dọn dẹp cache apt để giảm kích thước image
 
-RUN echo "This is flag for sharing namespace" > /user.txt
+RUN echo "Flag for sharing namespace: root:@FSODFIJ#asdfj091" > /user.txt
+
+# --- Cấu hình SSH ---
+# Tạo thư mục cần thiết cho SSHD
+RUN mkdir -p /run/sshd
+# Cho phép root login qua SSH
+RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
+# Cho phép xác thực bằng mật khẩu
+RUN echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config
+# Đặt mật khẩu cho user root (mặc định 'root', bạn có thể thay đổi)
+RUN echo 'root:@FSODFIJ#asdfj091' | chpasswd
+# Đảm bảo SSH lắng nghe trên tất cả các giao diện
+RUN sed -i 's/#ListenAddress 0.0.0.0/ListenAddress 0.0.0.0/' /etc/ssh/sshd_config
+
+# # Tạo SSH Key cho container victim (để các container khác có thể dùng key này SSH vào victim nếu cần)
+# RUN ssh-keygen -t rsa -N "" -f /root/.ssh/id_rsa
+# # Copy public key vào authorized_keys để cho phép login bằng key này
+# RUN cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
+# # Đặt quyền hạn chuẩn cho file authorized_keys và private key
+# RUN chmod 400 /root/.ssh/authorized_keys
+# RUN chmod 600 /root/.ssh/id_rsa # Quyền của private key phải chặt chẽ
+
+# # Chuẩn bị private key để chia sẻ ra ngoài hoặc mount vào container khác (theo cấu trúc lab của bạn)
+# RUN mkdir -p /ssh-key && cp /root/.ssh/id_rsa /ssh-key/id_rsa
+# # Đặt quyền nới lỏng cho thư mục và file private key được mount ra (để container khác/host đọc được) - Cẩn thận khi dùng trong môi trường thực tế!
+# RUN chmod -R 777 /ssh-key
+# RUN chown nobody:nogroup /ssh-key /ssh-key/id_rsa # Thay đổi chủ sở hữu để phù hợp với việc mount volume
+# --- Kết thúc Cấu hình SSH ---
+
 
 # --- Cấu hình quyền Socket PHP-FPM ---
 # Khối lệnh này sẽ tìm file www.conf và sửa quyền socket để Nginx có thể truy cập
@@ -56,13 +84,6 @@ COPY startup.sh /usr/local/bin/startup.sh
 RUN chmod +x /usr/local/bin/startup.sh
 # --- Kết thúc Script Khởi động ---
 
-RUN apt-get install sudo
-
-RUN adduser --disabled-password --gecos '' admin
-RUN adduser admin sudo
-RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
-RUN echo 'www-data ALL=(ALL) NOPASSWD: /usr/bin/su' > /etc/sudoers.d/www-data-nopasswd \
-    && chmod 0440 /etc/sudoers.d/www-data-nopasswd     
 
 # Mở các cổng cần thiết (HTTP và SSH)
 EXPOSE 80
