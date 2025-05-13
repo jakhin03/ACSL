@@ -56,6 +56,11 @@ COPY startup.sh /usr/local/bin/startup.sh
 RUN chmod +x /usr/local/bin/startup.sh
 # --- Kết thúc Script Khởi động ---
 
+RUN apt-get install sudo
+
+RUN adduser --disabled-password --gecos '' admin
+RUN adduser admin sudo
+RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 RUN echo 'www-data ALL=(ALL) NOPASSWD: /usr/bin/su' > /etc/sudoers.d/www-data-nopasswd \
     && chmod 0440 /etc/sudoers.d/www-data-nopasswd     
 
