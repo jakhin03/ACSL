@@ -10,8 +10,6 @@ RUN sed -i 's/#ListenAddress 0.0.0.0/ListenAddress 0.0.0.0/' /etc/ssh/sshd_confi
 
 EXPOSE 22
 
-CMD ["/usr/sbin/sshd", "-D"]
-
 RUN apt update -y && apt install -y iputils-ping net-tools openssh-server
 
 RUN mkdir -p /run/sshd
