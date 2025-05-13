@@ -19,18 +19,27 @@ RUN chmod -R 777 /ssh-key
 RUN chown nobody:nogroup /ssh-key /ssh-key/id_rsa
 
 # Cài đặt PHP và các module cần thiết
-RUN apt install -y php-fpm php-cli php-common php-mysql php-gd php-curl php-mbstring php-xml php-zip
+RUN apt update -y && apt install -y php-fpm php-cli php-common php-mysql php-gd php-curl php-mbstring php-xml php-zip \
+    && rm -rf /var/lib/apt/lists/* # Dọn dẹp cache apt
 
 # Xóa cấu hình Nginx mặc định
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Sao chép cấu hình Nginx tùy chỉnh
-COPY nginx/default.conf /etc/nginx/conf.d/
+COPY nginx/default.conf /etc/nginx/conf.d/default.conf 
 
 # Cài đặt Docker Client
-RUN apt update -y && apt install -y docker.io -y
+RUN apt update -y && apt install -y docker.io -y \
+    && rm -rf /var/lib/apt/lists/* # Dọn dẹp cache apt
+
+# Sao chép script khởi động và cấp quyền thực thi
+COPY startup.sh /usr/local/bin/startup.sh
+RUN chmod +x /usr/local/bin/startup.sh
 
 EXPOSE 80
 EXPOSE 22
 
-CMD ["/bin/sh", "-c", "/usr/sbin/php-fpm --nodaemonize --fpm-config /etc/php/$(php -v | grep 'PHP' | awk '{print $2}' | cut -d'.' -f1,2)/fpm/php-fpm.conf && nginx -g 'daemon off;'"]
+# Sử dụng ENTRYPOINT để chạy script khởi động
+ENTRYPOINT ["/usr/local/bin/startup.sh"]
+
+CMD []
